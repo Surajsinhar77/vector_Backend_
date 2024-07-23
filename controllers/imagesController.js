@@ -58,8 +58,8 @@ const imageController = {
         await newImage.save();
 
         // Construct HTTP URLs for frontend consumption
-        const baseUrl = `${req.protocol}://${req.get('host')}`;
-        const headerImageURL = `${baseUrl}/${headerImagePath}`;
+        const baseUrl = `${req.protocol}://${req.get('host')}/app1`;
+        const headerImageURL = `${baseUrl}/uploads/${req.file.filename}`;
 
         // Modify the image object to include HTTP URLs
         newImage.headerImage = headerImageURL;
@@ -78,7 +78,7 @@ const imageController = {
       const images = await Image.find();
       res.status(200).json(images.map(image => ({
         ...image.toObject(),
-        headerImage: `${req.protocol}://${req.get('host')}/${image.headerImage}`
+        headerImage: `${req.protocol}://${req.get('host')}/uploads/${path.basename(image.headerImage)}`
       })));
     } catch (error) {
       console.error('Error fetching images:', error);
