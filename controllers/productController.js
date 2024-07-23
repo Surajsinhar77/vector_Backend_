@@ -43,7 +43,6 @@ const upload = multer({ storage, fileFilter }).fields([
   { name: 'file', maxCount: 1 }
 ]);
 
-// Controller methods
 const productController = {
   // Create a new product
   createProduct: async (req, res, next) => {
@@ -70,15 +69,14 @@ const productController = {
 
         await newProduct.save();
 
-               // Construct HTTP URLs for frontend consumption
-               const baseUrl = `${req.protocol}://${req.get('host')}`;
-               const productImageURL = productImagePath ? `${baseUrl}/uploads/${productImagePath}` : '';
-               const fileURL = filePath ? `${baseUrl}/uploads/${filePath}` : '';
-       
-               // Modify the product object to include HTTP URLs
-               newProduct.productImage = productImageURL;
-               newProduct.file = fileURL;
-       
+        // Construct HTTP URLs for frontend consumption with /app1 prefix
+        const baseUrl = `${req.protocol}://${req.get('host')}/app1`;
+        const productImageURL = productImagePath ? `${baseUrl}/uploads/${productImagePath}` : '';
+        const fileURL = filePath ? `${baseUrl}/uploads/${filePath}` : '';
+
+        // Modify the product object to include HTTP URLs
+        newProduct.productImage = productImageURL;
+        newProduct.file = fileURL;
 
         res.status(201).json({ message: 'Product created successfully', product: newProduct });
       } catch (error) {
@@ -126,8 +124,11 @@ const productController = {
       // Optionally, remove associated files
       const pathsToDelete = [product.productImage, product.file];
       pathsToDelete.forEach((filePath) => {
-        if (filePath && fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
+        if (filePath) {
+          const fullPath = path.join(__dirname, '../uploads', filePath);
+          if (fs.existsSync(fullPath)) {
+            fs.unlinkSync(fullPath);
+          }
         }
       });
 
@@ -195,27 +196,27 @@ const productController = {
   getProductById: async (req, res) => {
     try {
       const { id } = req.params;
-      
+
       // Check if `id` is a valid ObjectId
       if (!mongoose.Types.ObjectId.isValid(id)) {
         return res.status(400).json({ error: 'Invalid product ID format' });
       }
-  
+
       const product = await Product.findById(id);
-      
+
       if (!product) {
         return res.status(404).json({ error: 'Product not found' });
       }
-  
-      // Construct HTTP URLs for frontend consumption
-      const baseUrl = `${req.protocol}://${req.get('host')}`;
+
+      // Construct HTTP URLs for frontend consumption with /app1 prefix
+      const baseUrl = `${req.protocol}://${req.get('host')}/app1`;
       const productImageURL = product.productImage ? `${baseUrl}/uploads/${product.productImage}` : '';
       const fileURL = product.file ? `${baseUrl}/uploads/${product.file}` : '';
-  
+
       // Modify the product object to include HTTP URLs
       product.productImage = productImageURL;
       product.file = fileURL;
-  
+
       res.status(200).json(product);
     } catch (error) {
       console.error('Error fetching product by ID:', error);
@@ -232,10 +233,10 @@ const productController = {
         console.error(`Product with ID ${id} not found or has no file.`);
         return res.status(404).json({ error: 'Product file not found' });
       }
-  
+
       const filePath = path.join(__dirname, '../uploads', product.file);
       console.log(`Checking file path: ${filePath}`);
-  
+
       if (fs.existsSync(filePath)) {
         res.sendFile(filePath);
       } else {
@@ -244,7 +245,7 @@ const productController = {
       }
     } catch (error) {
       console.error('Error fetching product file:', error);
-      res.status(500).json({ error: 'Server error', details: error.message });
+      res.status(500).json({ error: 'Error fetching product file', details: error.message });
     }
   }
 };
