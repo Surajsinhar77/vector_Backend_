@@ -2,7 +2,6 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const mongoose = require('mongoose');
-
 const Product = require('../models/product');
 
 // Ensure directory existence
@@ -17,7 +16,7 @@ const ensureDirectoryExistence = (filePath) => {
 // Multer storage configuration for images and files
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadDir = path.join(__dirname, '../uploads'); // Example path, adjust as needed
+    const uploadDir = path.join(__dirname, '../uploads'); // Adjust path as needed
     ensureDirectoryExistence(uploadDir);
     cb(null, uploadDir);
   },
@@ -28,7 +27,6 @@ const storage = multer.diskStorage({
 
 // File filter to allow only specific file types
 const fileFilter = (req, file, cb) => {
-  // Example mime types, adjust as needed
   const allowedMimes = ['image/jpeg', 'image/png', 'application/pdf'];
   if (allowedMimes.includes(file.mimetype)) {
     cb(null, true);
@@ -45,7 +43,7 @@ const upload = multer({ storage, fileFilter }).fields([
 
 const productController = {
   // Create a new product
-  createProduct: async (req, res, next) => {
+  createProduct: async (req, res) => {
     upload(req, res, async (err) => {
       if (err) {
         console.error('Error uploading files:', err);
@@ -244,8 +242,8 @@ const productController = {
         res.status(404).json({ error: 'File not found on server' });
       }
     } catch (error) {
-      console.error('Error fetching product file:', error);
-      res.status(500).json({ error: 'Error fetching product file', details: error.message });
+      console.error('Error fetching product file by ID:', error);
+      res.status(500).json({ error: 'Error fetching product file by ID', details: error.message });
     }
   }
 };
